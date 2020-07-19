@@ -28,7 +28,79 @@
  *   'NULL'      => false 
  */
 function findStringInSnakingPuzzle(puzzle, searchStr) {
-    throw new Error('Not implemented');
+    let letters = [];
+    let path = [];
+
+    searchStr.split('').forEach(letter => {
+        let encounters = [];
+
+        for (let i = 0; i < puzzle.length; i++) {
+            for (let j = 0; j < puzzle[i].length; j++) {
+                if (puzzle[i][j] === letter) {
+                    encounters.push([i, j]);
+                }
+            }
+        }
+
+        letters.push({
+            letter,
+            encounters
+        });
+    });
+
+    function isValidEncounter(nextEncounter) {
+        if (path.length === 0) {
+            return true;
+        }
+
+        let valid = true;
+
+        path.forEach(encounter => {
+            if (encounter[0] === nextEncounter[0] && encounter[1] === nextEncounter[1]) {
+                valid = false;
+                return;
+            }
+        });
+
+        if (!valid) {
+            return false;
+        }
+
+        let prevEncounter = path[path.length - 1];
+        let deltaY = prevEncounter[0] - nextEncounter[0];
+        let deltaX = prevEncounter[1] - nextEncounter[1];
+
+        if (((deltaY === 1 || deltaY === -1) && deltaX === 0) || ((deltaX === 1 || deltaX === -1) && deltaY === 0)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    function findNextLetterEncounter(letterIndex) {
+        let isFound = false;
+
+        letters[letterIndex].encounters.forEach((encounter, index) => {
+            if (isValidEncounter(encounter) && !isFound) {  
+                isFound = true; 
+                path.push(letters[letterIndex].encounters[index]);
+
+                if (letterIndex + 1 !== letters.length) {
+                    isFound = findNextLetterEncounter(letterIndex + 1);
+                    
+                    if (isFound) {
+                        return; 
+                    } 
+                    
+                    path.pop();
+                }
+            }
+        });
+
+        return isFound;
+    }
+
+    return findNextLetterEncounter(0);
 }
 
 
@@ -45,7 +117,43 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
  *    'abc' => 'abc','acb','bac','bca','cab','cba'
  */
 function* getPermutations(chars) {
-    throw new Error('Not implemented');
+    yield chars;
+
+    let arr = chars.split('');
+
+    function swap(index1, index2) {
+        let temp = arr[index1];
+        arr[index1] = arr[index2];
+        arr[index2] = temp;
+    }
+
+    function format(array) {
+        let output = '';
+        array.forEach(elem => output += elem);
+        return output;
+    }
+    
+    let c = new Array(arr.length);
+    let i = 0;
+    c.fill(0);
+
+    while (i < arr.length) {
+
+        if (c[i] < i) {
+            if (i % 2 === 0) {
+                swap(0, i);
+            } else {
+                swap(c[i], i);
+            }
+
+            yield format(arr);
+            c[i]++;
+            i = 0;
+        } else {
+            c[i] = 0;
+            i++;
+        }
+    }
 }
 
 
@@ -65,7 +173,32 @@ function* getPermutations(chars) {
  *    [ 1, 6, 5, 10, 8, 7 ] => 18  (buy at 1,6,5 and sell all at 10)
  */
 function getMostProfitFromStockQuotes(quotes) {
-    throw new Error('Not implemented');
+    let buySell = new Array(quotes.length);
+    let maxQuot = quotes[quotes.length - 1];
+    buySell.fill(1);
+    buySell[buySell.length - 1] = 0;
+
+    for (let i = quotes.length - 2; i >= 0; i--) {
+        if (quotes[i] > maxQuot) {
+            buySell[i] = 0;
+            maxQuot = quotes[i];
+        }
+    }
+
+    let profit = 0;
+    let quotesBuyed = 0;
+
+    for (let i = 0; i < quotes.length; i++) {
+        if (buySell[i] === 1) {
+            profit -= quotes[i];
+            quotesBuyed++;
+        } else {
+            profit += quotesBuyed * quotes[i];
+            quotesBuyed = 0;
+        }
+    }
+
+    return profit < 0 ? 0 : profit;
 }
 
 
@@ -92,12 +225,36 @@ function UrlShortener() {
 UrlShortener.prototype = {
 
     encode: function(url) {
-        throw new Error('Not implemented');
+        let result = '';
+
+        for (let i = 0; i < url.length; i += 2) {
+            let a = url.charCodeAt(i);
+            let b = url.charCodeAt(i + 1);
+            let code = (a << 8) | b;
+
+            result += String.fromCharCode(code);
+        }
+
+        return result;
     },
-    
+
     decode: function(code) {
-        throw new Error('Not implemented');
-    } 
+        let result = "";
+
+        for (let i = 0; i < code.length; i++) {
+            let char = parseInt(code.charCodeAt(i), 10);
+            let b = char & 255;
+            let a = (char >> 8) & 255;
+
+            if (b === 0) {
+                result += String.fromCharCode(a)
+            } else {
+                result += String.fromCharCode(a) + String.fromCharCode(b);
+            }
+        }
+
+        return result;
+    }
 }
 
 
