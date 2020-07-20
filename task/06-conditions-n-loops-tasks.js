@@ -32,9 +32,13 @@
 function getFizzBuzz(num) {
     if (num % 3 === 0 && num % 5 === 0) {
         return 'FizzBuzz';
-    } else if (num % 3 === 0) {
+    } 
+
+    if (num % 3 === 0) {
         return 'Fizz';
-    } else if (num % 5 === 0) {
+    } 
+
+    if (num % 5 === 0) {
         return 'Buzz';
     }
 
@@ -186,7 +190,7 @@ function doRectanglesOverlap(rect1, rect2) {
  *   
  */
 function isInsideCircle(circle, point) {
-    return Math.sqrt(Math.pow((point.x - circle.center.x), 2) + Math.pow((point.y - circle.center.y), 2)) < circle.radius;
+    return Math.hypot((point.x - circle.center.x), (point.y - circle.center.y)) < circle.radius;
 }
 
 
@@ -275,7 +279,7 @@ function reverseString(str) {
  */
 function reverseInteger(num) {
     let str = num.toString();
-    return reverseString(str);
+    return Number.parseInt(reverseString(str));
 }
 
 
@@ -300,7 +304,7 @@ function reverseInteger(num) {
  *   4916123456789012 => false
  */
 function isCreditCardNumber(ccn) {
-    let reverseCcn = reverseInteger(ccn);
+    let reverseCcn = reverseString(ccn.toString());
     let sum = 0;
 
     for (let i = 0; i < reverseCcn.length; i++) {
@@ -509,15 +513,7 @@ function toNaryString(num, n) {
  */
 function getCommonDirectoryPath(pathes) {
     function isCommonDir(path, pathes) {
-        let result = true;
-
-        pathes.forEach(element => {
-            if (!element.startsWith(path)) {
-                result = false;
-            }
-        });
-
-        return result;
+        return pathes.every(element => element.startsWith(path));
     }
 
     let commonDir = pathes[0];
