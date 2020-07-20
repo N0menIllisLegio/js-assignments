@@ -130,13 +130,11 @@ function retry(func, attempts) {
                 return func();
             }
             catch(error) {
-                if (i === attempts) {
-                    throw new Error('fulyError');
-                }
-
                 continue;
             }
         }
+
+        throw new Error('fulyError');
     }
 }
 
