@@ -288,15 +288,8 @@ function getSecondItems(arr) {
  *  [ 1,2,3,4,5 ] => [ 1, 2,2, 3,3,3, 4,4,4,4, 5,5,5,5,5 ]
  */
 function propagateItemsByPositionIndex(arr) {
-  let newArr = [];
-
-  arr.filter(function (element, index) {
-    let buf = Array(index + 1);
-    buf.fill(element);
-    newArr = newArr.concat(buf);
-  });
-
-  return newArr;
+  return arr.reduce((accum, element, index) =>
+    accum.concat(Array(index + 1).fill(element)), new Array());
 }
 
 
@@ -372,14 +365,7 @@ function sortDigitNamesByNumericOrder(arr) {
  *   [ 1, 10, 100, 1000 ]  => 1111
  */
 function getItemsSum(arr) {
-   let sum = 0;
-
-   arr.filter(function(element) {
-    sum += element;
-    return true;
-   });
-
-   return sum;
+   return arr.reduce((accum, element) => accum + element, 0);
 }
  
 /** 
@@ -492,14 +478,11 @@ function getIdentityMatrix(n) {
   let arr = new Array(n);
   arr.fill(0);
 
-  arr.map(function(inputArr, i, a){
-    a[i] = new Array(n);
-    a[i].fill(0);
-    a[i][i] = 1;
-    return a;
+  return arr.map(function(inputArr, i, a){
+    inputArr = new Array(n).fill(0);
+    inputArr[i] = 1;
+    return inputArr;
   });
-
-  return arr;
 }
 
 /**
@@ -533,13 +516,10 @@ function getIntervalArray(start, end) {
  *   [ 1, 1, 2, 2, 3, 3, 4, 4] => [ 1, 2, 3, 4]
  */
 function distinct(arr) {
-  let buf = new Set();
-
-  arr.filter(function(element){
-    buf.add(element);
-  });
-
-  return Array.from(buf);
+  return arr.reduce((accum, element, index) => 
+    accum.indexOf(element) === -1 ?
+    accum.concat(element) :
+    accum, new Array());
 }
 
 /**
@@ -573,15 +553,8 @@ function distinct(arr) {
  *   }
  */
 function group(array, keySelector, valueSelector) {
-  let map = new Map();
-
-  array.map(function(x) {
-    if (!map.has(keySelector(x)))
-      map.set(keySelector(x), array.filter(y => keySelector(x) === keySelector(y))
-        .map(z => valueSelector(z)));
-  });
-
-  return map;
+  return new Map(array.reduce((accum, element) => accum.set(keySelector(element), 
+    (accum.get(keySelector(element))|| []).concat(valueSelector(element))), new Map()));
 }
 
 
@@ -614,9 +587,7 @@ function selectMany(arr, childrenSelector) {
  *   [[[ 1, 2, 3]]], [ 0, 0, 1 ]      => 2        (arr[0][0][1])
  */
 function getElementByIndexes(arr, indexes) {
-  indexes.map(x => arr = arr[x]);
-
-  return arr;
+   return indexes.reduce((accum, element) => accum[element], arr);
 }
 
 
@@ -642,9 +613,8 @@ function swapHeadAndTail(arr) {
   let arrLen = arr.length;
   let arrEnd = arr.splice(0, Math.floor(arrLen / 2));
   let arrStart = arr.splice(-Math.floor(arrLen / 2));
-  let resArr = Array();
 
-  return resArr.concat(arrStart, arr, arrEnd);
+  return new Array().concat(arrStart, arr, arrEnd);
 }
 
 
