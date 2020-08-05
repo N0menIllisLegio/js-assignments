@@ -58,7 +58,10 @@ function parseBankAccount(bankAccount) {
     }
 
     function convertDigit(strDigit) {
-        let strDigits = [' _ | ||_|', '     |  |', ' _  _||_ ', ' _  _| _|', '   |_|  |', ' _ |_  _|', ' _ |_ |_|', ' _   |  |', ' _ |_||_|', ' _ |_| _|'];
+        let strDigits = [' _ | ||_|', '     |  |', ' _  _||_ ', 
+            ' _  _| _|', '   |_|  |', ' _ |_  _|', ' _ |_ |_|', 
+            ' _   |  |', ' _ |_||_|', ' _ |_| _|'];
+            
         return strDigits.indexOf(strDigit);
     }
 
@@ -162,17 +165,14 @@ function getPokerHandRank(hand) {
     });
 
     function checkRanks(cards) {
-        let output = true;
         let kind = cards[0][0];
+        return cards.every(card => card[0] === kind);
+    }
 
-        cards.forEach(card => {
-            if (card[0] !== kind) {
-                output = false;
-                return;
-            }
-        });
-
-        return output;
+    function countDifferentCards(cards) {
+        let set = new Set();
+        cards.forEach(card => set.add(card[0]));
+        return set.size;
     }
 
     function isStraightFlush() {
@@ -180,35 +180,21 @@ function getPokerHandRank(hand) {
     }
 
     function isFourOfKind() {
-        return checkRanks(hand.slice(1)) || checkRanks(hand.slice(0, 4));
+        return checkRanks(hand.slice(1)) || 
+               checkRanks(hand.slice(0, 4));
     }
 
     function isFullHouse() {
         return (checkRanks(hand.slice(0, 3)) && checkRanks(hand.slice(-2))) || 
-                (checkRanks(hand.slice(0, 2)) && checkRanks(hand.slice(-3)));
+               (checkRanks(hand.slice(0, 2)) && checkRanks(hand.slice(-3)));
     }
 
     function isFlush() {
-        function checkSuits(cards) {
-            let output = true;
-            let kind = cards[0][cards[0].length - 1];
-
-            cards.forEach(card => {
-                if (card[card.length - 1] !== kind) {
-                    output = false;
-                    return;
-                }
-            });
-
-            return output;
-        }
-
-        return checkSuits(hand);
+        return hand.every(card => card[card.length - 1] === hand[0][hand[0].length - 1]);
     }
 
     function isStraight() {
-        let temp = '';
-        hand.forEach(card => temp += card[0]);
+        let temp = hand.reduce((accum, card) => accum + card[0], '');
 
         if (temp[0] === '2' && temp[temp.length - 1] === 'A') {
             temp = 'A' + temp.slice(0, temp.length - 1);
@@ -219,28 +205,16 @@ function getPokerHandRank(hand) {
 
     function isThreeOfKind() {
         return checkRanks(hand.slice(-3)) || 
-                checkRanks(hand.slice(0, 3)) || 
-                checkRanks(hand.slice(1, 4));
+               checkRanks(hand.slice(0, 3)) || 
+               checkRanks(hand.slice(1, 4));
     }
 
     function isTwoPairs() {
-        function check(cards) {
-            let set = new Set();
-            cards.forEach(card => set.add(card[0]));
-            return set.size;
-        }
-
-        return check(hand) === 3;
+        return countDifferentCards(hand) === 3;
     }
 
     function isOnePair() {
-        function check(cards) {
-            let set = new Set();
-            cards.forEach(card => set.add(card[0]));
-            return set.size;
-        }
-
-        return check(hand) === 4;
+        return countDifferentCards(hand) === 4;
     }
 
     if (isStraightFlush()) 
