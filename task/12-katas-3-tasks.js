@@ -53,16 +53,7 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
             return true;
         }
 
-        let valid = true;
-
-        path.forEach(encounter => {
-            if (encounter[0] === nextEncounter[0] && encounter[1] === nextEncounter[1]) {
-                valid = false;
-                return;
-            }
-        });
-
-        if (!valid) {
+        if (!path.every(encounter => !(encounter[0] === nextEncounter[0] && encounter[1] === nextEncounter[1]))) {
             return false;
         }
 
@@ -70,11 +61,7 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
         let deltaY = prevEncounter[0] - nextEncounter[0];
         let deltaX = prevEncounter[1] - nextEncounter[1];
 
-        if (((deltaY === 1 || deltaY === -1) && deltaX === 0) || ((deltaX === 1 || deltaX === -1) && deltaY === 0)) {
-            return true;
-        }
-
-        return false;
+        return ((deltaY === 1 || deltaY === -1) && deltaX === 0) || ((deltaX === 1 || deltaX === -1) && deltaY === 0);
     }
 
     function findNextLetterEncounter(letterIndex) {
