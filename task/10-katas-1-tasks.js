@@ -212,13 +212,15 @@ function canDominoesMakeRow(dominoes) {
     }
 
     function isSuitable(sideToCompare, dominoIndex) {
-
         if (sideToCompare === dominoes[dominoIndex][0]) {
             return true;
-        } else if (sideToCompare === dominoes[dominoIndex][1]) {
-            dominoes[dominoIndex] = rotateDomino(dominoes[dominoIndex]);
-            return sideToCompare === dominoes[dominoIndex][0];
         }
+
+        if (sideToCompare === dominoes[dominoIndex][1]) {
+            dominoes[dominoIndex] = rotateDomino(dominoes[dominoIndex]);     
+        }
+
+        return sideToCompare === dominoes[dominoIndex][0];
     }
 
     function searchSuitableEqualSidesDomino(fromIndex, domino)
@@ -250,7 +252,6 @@ function canDominoesMakeRow(dominoes) {
                 }
 
                 if (!isFound) {
-
                     return false;
                 }
             }
