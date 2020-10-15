@@ -17,9 +17,39 @@
  *  ]
  */
 function createCompassPoints() {
-    let sides = ['N','E','S','W'];  // use array of cardinal directions only!
-    throw new Error('Not implemented');
+    function* azimuthGenerator() {
+        let azimuth = 0;
+        while (azimuth <= 360) {
+            yield azimuth;
+            azimuth += 11.25;
+        }
+    }
+
+    let sides = ['N','E','S','W', 'N'];
+    let output = [];
+    let i = 0;
+    let azimuthGen = azimuthGenerator();
+
+    while (i < 4) {
+        let currSide = sides[i], nextSide = sides[i + 1];
+        let halfSide = currSide === 'N' || currSide === 'S' ? currSide + nextSide : nextSide + currSide;
+
+
+        output.push({abbreviation: currSide, azimuth: azimuthGen.next().value});
+        output.push({abbreviation: currSide + 'b' + nextSide, azimuth: azimuthGen.next().value});
+        output.push({abbreviation: currSide + halfSide, azimuth: azimuthGen.next().value});
+        output.push({abbreviation: halfSide + 'b' + currSide, azimuth: azimuthGen.next().value});
+        output.push({abbreviation: halfSide, azimuth: azimuthGen.next().value});
+        output.push({abbreviation: halfSide + 'b' + nextSide, azimuth: azimuthGen.next().value});
+        output.push({abbreviation: nextSide + halfSide, azimuth: azimuthGen.next().value});
+        output.push({abbreviation: nextSide + 'b' + currSide, azimuth: azimuthGen.next().value});
+
+        i++;
+    }
+
+    return output;
 }
+
 
 
 /**
@@ -56,7 +86,29 @@ function createCompassPoints() {
  *   'nothing to do' => 'nothing to do'
  */
 function* expandBraces(str) {
-    throw new Error('Not implemented');
+    let workStrArr = [];
+    workStrArr.push(str);
+    let regex = /\{([^{]+?)\}/;
+    let output = new Set();
+
+    while (workStrArr.length !== 0) {
+        let workStr = workStrArr.pop();
+        let match = regex.exec(workStr);
+
+        if (match) {
+            let replacements = match[1].split(',');
+
+            for (let replacement of replacements) {
+                workStrArr.push(workStr.replace(regex, replacement));
+            }
+        } else {
+            output.add(workStr);
+        }  
+    }
+
+    for (let line of output) {
+        yield line;
+    }
 }
 
 
@@ -88,7 +140,41 @@ function* expandBraces(str) {
  *
  */
 function getZigZagMatrix(n) {
-    throw new Error('Not implemented');
+    let matrix = Array(n).fill(0).map(x => Array(n).fill(0));
+    let line = 0, column = 1, number = 1;
+
+    let lineInc = 0, columnInc = 0;
+    let changeDiag = true;
+
+
+    while (line <= n - 1 && column <= n - 1) {
+        matrix[line][column] = number++;
+
+        if (((line === 0 && column !== n - 1) || line === n - 1) && !changeDiag) {
+            columnInc = 1;
+            lineInc = 0;
+            changeDiag = true;
+        } else if ((column === 0 || column === n - 1) && !changeDiag) {
+            lineInc = 1;
+            columnInc = 0;
+            changeDiag = true;
+        } else {
+            changeDiag = false;
+
+            if (column === 0 || line === n - 1) {
+                lineInc = -1;
+                columnInc = 1;
+            } else if (line === 0 || column === n - 1) {
+                columnInc = -1;
+                lineInc = 1;
+            }
+        }
+
+        line += lineInc;
+        column += columnInc;
+    }
+
+    return matrix;
 }
 
 
@@ -113,7 +199,66 @@ function getZigZagMatrix(n) {
  *
  */
 function canDominoesMakeRow(dominoes) {
-    throw new Error('Not implemented');
+    let copy = [...dominoes];
+
+    function rotateDomino(domino) {
+        return [domino[1], domino[0]];
+    }
+
+    function swapDominoes(dominoIndex1, dominoIndex2) {
+        let tempDomino = dominoes[dominoIndex1];
+        dominoes[dominoIndex1] = dominoes[dominoIndex2];
+        dominoes[dominoIndex2] = tempDomino;
+    }
+
+    function isSuitable(sideToCompare, dominoIndex) {
+        if (sideToCompare === dominoes[dominoIndex][0]) {
+            return true;
+        }
+
+        if (sideToCompare === dominoes[dominoIndex][1]) {
+            dominoes[dominoIndex] = rotateDomino(dominoes[dominoIndex]);     
+        }
+
+        return sideToCompare === dominoes[dominoIndex][0];
+    }
+
+    function searchSuitableEqualSidesDomino(fromIndex, domino)
+    {
+        for (let i = fromIndex; i < dominoes.length; i++) {
+            let searchedDomino = dominoes[i];
+
+            if (searchedDomino[0] === searchedDomino[1] && searchedDomino[0] === domino[1]) {
+                swapDominoes(fromIndex, i);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    for (let i = 0; i < dominoes.length - 1; i++) {
+        if (!searchSuitableEqualSidesDomino(i + 1, dominoes[i])) {
+            if (!isSuitable(dominoes[i][1], i + 1)) {
+                let isFound = false;
+
+                for (let j = i + 2; j < dominoes.length && !isFound; j++) {
+
+                    if (isSuitable(dominoes[i][1], j)) {
+                        swapDominoes(i + 1, j);
+                        isFound = true;
+                    }
+                }
+
+                if (!isFound) {
+                    return false;
+                }
+            }
+        }
+    }
+    
+    return true;
 }
 
 
@@ -137,7 +282,34 @@ function canDominoesMakeRow(dominoes) {
  * [ 1, 2, 4, 5]          => '1,2,4,5'
  */
 function extractRanges(nums) {
-    throw new Error('Not implemented');
+    function writeOutput() {
+        if (sequence.length > 2) {
+            output += `,${sequence[0]}-${sequence[sequence.length - 1]}`;
+        } else {
+            output += ',' + sequence.join();
+        }
+
+        sequenceCounter = -1;
+        sequence = [];
+    }
+
+    let sequence = [];
+    let output = '';
+    let sequenceCounter = 0;
+    sequence.push(nums[0]);
+
+    for (let i = 1; i < nums.length; i++) {
+        if (nums[i] !== sequence[sequenceCounter] + 1) {
+            writeOutput();
+        }
+
+        sequence.push(nums[i]);
+        sequenceCounter++;      
+    }
+
+    writeOutput();
+
+    return output[output.length - 1] === ',' ? output.slice(1, output.length - 1) : output.slice(1);
 }
 
 module.exports = {
