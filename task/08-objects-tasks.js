@@ -23,7 +23,12 @@
  *    console.log(r.getArea());   // => 200
  */
 function Rectangle(width, height) {
-    throw new Error('Not implemented');
+    this.width = width;
+    this.height = height;
+
+    Rectangle.prototype.getArea =  function() {
+        return this.width * this.height;
+    }
 }
 
 
@@ -38,7 +43,7 @@ function Rectangle(width, height) {
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
 function getJSON(obj) {
-    throw new Error('Not implemented');
+    return JSON.stringify(obj);
 }
 
 
@@ -54,7 +59,7 @@ function getJSON(obj) {
  *
  */
 function fromJSON(proto, json) {
-    throw new Error('Not implemented');
+    return Object.setPrototypeOf(JSON.parse(json), proto);
 }
 
 
@@ -106,34 +111,158 @@ function fromJSON(proto, json) {
  *  For more examples see unit tests.
  */
 
+class CSSSelector {
+    constructor() {
+        this.element_ = '';
+        this.id_ = ''; 
+        this.classes = []; 
+        this.attributes = []; 
+        this.pseudoClasses = []; 
+        this.pseudoElement_ = '';
+
+        this.Parts = {
+            NONE: 0,
+            ELEMENT: 1,
+            ID: 2,
+            CLASS: 3,
+            ATTR: 4,
+            PSEUDOCLASS: 5,
+            PSEUDOELEMENT: 6
+        };
+
+        this.lastAddedPart = this.Parts.NONE;
+    }
+
+    checkPartsOrder(currentPart) {
+        if (this.lastAddedPart > currentPart)
+            throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+
+        return currentPart;
+    }
+
+    addCSSSelectorPart(separator, part) {
+        return part === '' ? '' : separator + part;
+    }
+
+
+
+    element(value) {
+        if (this.element_ !== '') 
+            throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+
+        this.lastAddedPart = this.checkPartsOrder(this.Parts.ELEMENT);
+        this.element_ = value;
+
+        return this;
+    }
+
+    id(value) {
+        if (this.id_ !== '') 
+            throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+
+        this.lastAddedPart = this.checkPartsOrder(this.Parts.ID);
+        this.id_ = value;
+
+        return this;
+    }
+
+    class(value) {
+        this.lastAddedPart = this.checkPartsOrder(this.Parts.CLASS);
+        this.classes.push(value);
+
+        return this;
+    }
+
+    attr(value) {
+        this.lastAddedPart = this.checkPartsOrder(this.Parts.ATTR);
+        this.attributes.push(value);
+
+        return this;
+    }
+
+    pseudoClass(value) {
+        this.lastAddedPart = this.checkPartsOrder(this.Parts.PSEUDOCLASS);
+        this.pseudoClasses.push(value);
+
+        return this;
+    }
+
+    pseudoElement(value) {
+        if (this.pseudoElement_ !== '') 
+            throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+
+        this.lastAddedPart = this.checkPartsOrder(this.Parts.PSEUDOELEMENT);
+        this.pseudoElement_ = value;
+
+        return this;
+    }
+
+    stringify() {
+        let output = this.element_;
+        output += this.addCSSSelectorPart('#', this.id_);
+        output += this.addCSSSelectorPart('.', this.classes.join('.'));
+        output += this.attributes.map(elem => `[${elem}]`).join('');
+        output += this.addCSSSelectorPart(':', this.pseudoClasses.join(':'));
+        output += this.addCSSSelectorPart('::', this.pseudoElement_);
+
+        return output;
+    }
+}
+
+class CSSCombinator {
+    constructor() {
+        this.combined = [];
+    }
+
+
+    combine(selector1, combinator, selector2) {
+        let combinators = [ ' ', '+', '~', '>' ];
+
+        if (combinators.indexOf(combinator) === -1) {
+            throw new Error('Invalid combinator');
+        } else {
+            this.combined.push(selector1);
+            this.combined.push(combinator);
+            this.combined.push(selector2);
+        }
+
+        return this;
+    }
+
+    stringify() {
+        return `${this.combined[0].stringify()} ${this.combined[1]} ${this.combined[2].stringify()}`;
+    }
+}
+
+
 const cssSelectorBuilder = {
 
     element: function(value) {
-        throw new Error('Not implemented');
+        return new CSSSelector().element(value);
     },
 
     id: function(value) {
-        throw new Error('Not implemented');
+        return new CSSSelector().id(value);
     },
 
     class: function(value) {
-        throw new Error('Not implemented');
+        return new CSSSelector().class(value);
     },
 
     attr: function(value) {
-        throw new Error('Not implemented');
+        return new CSSSelector().attr(value);
     },
 
     pseudoClass: function(value) {
-        throw new Error('Not implemented');
+        return new CSSSelector().pseudoClass(value);
     },
 
     pseudoElement: function(value) {
-        throw new Error('Not implemented');
+        return new CSSSelector().pseudoElement(value);
     },
 
     combine: function(selector1, combinator, selector2) {
-        throw new Error('Not implemented');
+        return new CSSCombinator().combine(selector1, combinator, selector2);
     },
 };
 
