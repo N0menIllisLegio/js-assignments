@@ -34,7 +34,46 @@
  *
  */
 function parseBankAccount(bankAccount) {
-    throw new Error('Not implemented');
+    function* stringDivider(str) {
+        let digitWidth = 3;
+        let offset = 0;
+        let lineLength = 25;
+
+        for (let i = 0; i < 9; i++) {
+            let digit = '';
+
+            let startIndex = offset, endIndex = offset + digitWidth;
+            digit = str.slice(startIndex, endIndex);
+
+            startIndex = offset + digitWidth + lineLength;
+            endIndex = offset + digitWidth + lineLength + digitWidth;
+            digit += str.slice(startIndex, endIndex);
+
+            startIndex = offset + digitWidth + lineLength + digitWidth + lineLength;
+            endIndex = offset + digitWidth + lineLength + digitWidth + lineLength + digitWidth;
+            yield digit + str.slice(startIndex, endIndex);
+
+            offset += 3;
+        }
+    }
+
+    function convertDigit(strDigit) {
+        let strDigits = [' _ | ||_|', '     |  |', ' _  _||_ ', 
+            ' _  _| _|', '   |_|  |', ' _ |_  _|', ' _ |_ |_|', 
+            ' _   |  |', ' _ |_||_|', ' _ |_| _|'];
+            
+        return strDigits.indexOf(strDigit);
+    }
+
+    
+    let output = 0;
+    let it = stringDivider(bankAccount);
+
+    for (let digit of it) {
+        output = output * 10 + convertDigit(digit);
+    }
+
+    return output;
 }
 
 
@@ -63,9 +102,27 @@ function parseBankAccount(bankAccount) {
  *                                                                                                'characters.'
  */
 function* wrapText(text, columns) {
-    throw new Error('Not implemented');
-}
+    let arr = text.split(' ');
+    let sum = 0;
+    let line = '';
+    let i = 0;
 
+    while(i < arr.length) {
+        if (sum + arr[i].length <= columns) {
+            line += arr[i] + ' ';
+            sum += arr[i].length + 1;
+            i++;
+        } else {
+            yield line.trim();
+            line = '';
+            sum = 0;
+        }
+    } 
+
+    if (line.length > 0) {
+        yield line.trim();
+    }
+}
 
 /**
  * Returns the rank of the specified poker hand.
@@ -100,7 +157,91 @@ const PokerRank = {
 }
 
 function getPokerHandRank(hand) {
-    throw new Error('Not implemented');
+    const ranks = 'A234567891JQKA';
+
+    hand = hand.sort((card1, card2) => {
+        const sortedRanks = '234567891JQKA';
+        return sortedRanks.indexOf(card1[0]) - sortedRanks.indexOf(card2[0]);
+    });
+
+    function checkRanks(cards) {
+        let kind = cards[0][0];
+        return cards.every(card => card[0] === kind);
+    }
+
+    function countDifferentCards(cards) {
+        let set = new Set();
+        cards.forEach(card => set.add(card[0]));
+        return set.size;
+    }
+
+    function isStraightFlush() {
+        return isFlush() && isStraight();
+    }
+
+    function isFourOfKind() {
+        return checkRanks(hand.slice(1)) || 
+               checkRanks(hand.slice(0, 4));
+    }
+
+    function isFullHouse() {
+        return (checkRanks(hand.slice(0, 3)) && checkRanks(hand.slice(-2))) || 
+               (checkRanks(hand.slice(0, 2)) && checkRanks(hand.slice(-3)));
+    }
+
+    function isFlush() {
+        return hand.every(card => card[card.length - 1] === hand[0][hand[0].length - 1]);
+    }
+
+    function isStraight() {
+        let temp = hand.reduce((accum, card) => accum + card[0], '');
+
+        if (temp[0] === '2' && temp[temp.length - 1] === 'A') {
+            temp = 'A' + temp.slice(0, temp.length - 1);
+        }
+
+        return ranks.indexOf(temp) !== -1;
+    }
+
+    function isThreeOfKind() {
+        return checkRanks(hand.slice(-3)) || 
+               checkRanks(hand.slice(0, 3)) || 
+               checkRanks(hand.slice(1, 4));
+    }
+
+    function isTwoPairs() {
+        return countDifferentCards(hand) === 3;
+    }
+
+    function isOnePair() {
+        return countDifferentCards(hand) === 4;
+    }
+
+    if (isStraightFlush()) 
+        return PokerRank.StraightFlush;
+
+    if (isFourOfKind())
+        return PokerRank.FourOfKind;
+
+    if (isFullHouse())
+        return PokerRank.FullHouse;
+
+    if (isFlush())
+        return PokerRank.Flush;
+    
+    if (isStraight()) 
+        return PokerRank.Straight;
+
+    if (isThreeOfKind())
+        return PokerRank.ThreeOfKind;
+
+    if (isTwoPairs())
+        return PokerRank.TwoPairs;
+
+    if (isOnePair())
+        return PokerRank.OnePair;
+
+    return PokerRank.HighCard;
 }
 
 
@@ -135,7 +276,66 @@ function getPokerHandRank(hand) {
  *    '+-------------+\n'
  */
 function* getFigureRectangles(figure) {
-   throw new Error('Not implemented');
+    let arr = figure.split('\n');
+    arr.pop();
+
+    function getRectangleDimensions(line_, column_) {
+        let width = 0, height = 0;
+        let completeWidth = false, completeHeight = false;
+        
+        for (let i = column_ + 1; i < arr[line_].length; i++) {
+            if (arr[line_][i] === '+' && (arr[line_ + 1][i] === '|' || arr[line_ + 1][i] === '+')) {
+                completeWidth = true;
+                break;
+            } else {
+                width++;
+            }
+        }
+
+        for (let i = line_ + 1; i < arr.length; i++) {
+            if (arr[i][column_] === '+' && (arr[i][column_ + 1] === '-' || arr[i][column_ + 1] === '+')) {
+                completeHeight = true;
+                break;
+            } else {
+                height++;
+            }
+        }
+
+        return {height, width, complete: completeWidth && completeHeight};
+    }
+
+    function getRectangle(dimensions_) {
+        let top = '+' + '-'.repeat(dimensions_.width) + '+\n';
+        let middle = '';
+
+        if (dimensions_.height > 0) {
+            middle = '|' + ' '.repeat(dimensions_.width) + '|\n';
+        }
+        
+        return top + middle.repeat(dimensions_.height) + top;
+    }
+
+    let line = 0, column = 0;
+
+    while(line < arr.length - 1) {
+        if (arr[line][column] === '+' && 
+            (arr[line + 1][column] === '|' || arr[line + 1][column] === '+') &&
+            (arr[line][column + 1] === '-' || arr[line][column + 1] === '+')) {
+            
+            let dimensions = getRectangleDimensions(line, column);
+
+            if (dimensions.complete) {
+                yield getRectangle(dimensions);
+            }
+        }
+
+        if (column === arr[0].length - 1) {
+            column = 0;
+            line++;
+        } else {
+            column++;
+        }
+    }
 }
 
 
